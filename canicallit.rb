@@ -17,6 +17,7 @@ GITHUB_MIN_FORKS = 10 # Min. number of forks to qualify as a meaningful Github 
 RUBYGEMS_API_PATH = 'https://rubygems.org/api/v1/search.json?query='
 PYPI_API_PATH = 'http://pypi.python.org/pypi'
 SOURCEFORGE_API_PATH = 'http://sourceforge.net/api/project/name/'
+MAVEN_API_PATH = 'http://search.maven.org/solrsearch/select?rows=20&wt=json&q=a:'
 
 # Serve page
 get '/' do
@@ -24,13 +25,22 @@ get '/' do
     term = params['search']
     matches = []
 
+    # Populate Matches array
     findSourceForgeProjects(term, matches)
     findGithubProjects(term, matches)
     findRubyGems(term, matches)
     findPyPIPackages(term, matches)
+    findMavenPackages(term, matches)
 
-    erb :results, :locals => {:term => term, :result => printHTML(term, matches)}
+    # Mangle the Matches arrays as necessary
+    matches.uniq!
+    exactMatches = matches.select{ |match| (match[:exact] == true)}
+    matches = matches - exactMatches
+
+    # Generate results output
+    erb :results, :locals => {:term => term, :result => printHTML(term, exactMatches, matches)}
   else
+    # Generate main page output
     erb :index
   end
 end
@@ -110,12 +120,24 @@ def findPyPIPackages(term, matches)
   end
 end
 
-# Print the HTML for the results. Quick and dirty.
-def printHTML(term, matches)
-  html = ''
+# Find Packages on Maven
+def findMavenPackages(term, matches)
+  begin
+    uri = URI.parse("#{MAVEN_API_PATH}%22#{term}%22")
+    http = Net::HTTP.new(uri.host, uri.port)
+    request = Net::HTTP::Get.new(uri.request_uri)
+    res = http.request(request)
+    rhash = JSON.parse(res.body)
+    rhash['response']['docs'].each do |package|
+      matches << {:name => package['a'], :by => '', :url => "http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22#{package['a']}%22", :description => '', :source => 'Maven', :exact => (term == package['a'])}
+    end
+  rescue
+  end
+end
 
-  exactMatches = matches.select{ |match| (match[:exact] == true)}
-  matches = matches - exactMatches
+# Print the HTML for the results. Quick and dirty.
+def printHTML(term, exactMatches, matches)
+  html = ''
 
   if matches.length == 0
     html << "<h1>Yes.</h1><h2>You can call your project '#{term}', it's unique!</h2>"
