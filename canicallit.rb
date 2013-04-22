@@ -84,7 +84,7 @@ def findGithubProjects(term, matches)
     rhash = JSON.parse(res.body)
     rhash['repositories'].each do |repo|
       if repo['forks'] > GITHUB_MIN_FORKS
-        matches << {:name => repo['name'], :by => repo['username'], :url => repo['url'], :description => repo['description'], :source => 'GitHub', :exact => (term == repo['name'])}
+        matches << {:name => repo['name'], :by => repo['username'], :url => repo['url'], :description => repo['description'], :source => 'GitHub', :exact => (term.downcase == repo['name'].downcase)}
       end
     end
   rescue
@@ -102,7 +102,7 @@ def findRubyGems(term, matches)
     res = http.request(request)
     rhash = JSON.parse(res.body)
     rhash.each do |rubygem|
-      matches << {:name => rubygem['name'], :by => rubygem['authors'], :url => rubygem['project_uri'], :description => rubygem['info'], :source => 'Ruby Gems', :exact => (term == rubygem['name'])}
+      matches << {:name => rubygem['name'], :by => rubygem['authors'], :url => rubygem['project_uri'], :description => rubygem['info'], :source => 'Ruby Gems', :exact => (term.downcase == rubygem['name'].downcase)}
     end
   rescue
   end
@@ -115,7 +115,7 @@ def findPyPIPackages(term, matches)
     client.http_header_extra = {"Content-Type" => "text/xml"}
     result = client.call('search', {'name' => term})
     result.each do |package|
-      matches << {:name => package['name'], :by => '', :url => "https://pypi.python.org/pypi/#{package['name']}/", :description => package['summary'], :source => 'PyPI', :exact => (term == package['name'])}
+      matches << {:name => package['name'], :by => '', :url => "https://pypi.python.org/pypi/#{package['name']}/", :description => package['summary'], :source => 'PyPI', :exact => (term.downcase == package['name'].downcase)}
     end
   rescue
   end
@@ -130,7 +130,7 @@ def findMavenPackages(term, matches)
     res = http.request(request)
     rhash = JSON.parse(res.body)
     rhash['response']['docs'].each do |package|
-      matches << {:name => package['a'], :by => '', :url => "http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22#{package['a']}%22", :description => '', :source => 'Maven', :exact => (term == package['a'])}
+      matches << {:name => package['a'], :by => '', :url => "http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22#{package['a']}%22", :description => '', :source => 'Maven', :exact => (term.downcase == package['a'].downcase)}
     end
   rescue
   end
