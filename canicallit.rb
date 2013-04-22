@@ -12,12 +12,12 @@ require 'json'
 require 'nokogiri'
 require 'xmlrpc/client'
 
-GITHUB_API_PATH = 'http://api.github.com/legacy/repos/search/'
+GITHUB_API_PATH = 'http://api.github.com/legacy/repos/search/~?sort=forks'
 GITHUB_MIN_FORKS = 5 # Min. number of forks to qualify as a meaningful Github project
-RUBYGEMS_API_PATH = 'https://rubygems.org/api/v1/search.json?query='
+RUBYGEMS_API_PATH = 'https://rubygems.org/api/v1/search.json?query=~'
 PYPI_API_PATH = 'http://pypi.python.org/pypi'
-SOURCEFORGE_API_PATH = 'http://sourceforge.net/api/project/name/'
-MAVEN_API_PATH = 'http://search.maven.org/solrsearch/select?rows=20&wt=json&q=a:'
+SOURCEFORGE_API_PATH = 'http://sourceforge.net/api/project/name/~/json'
+MAVEN_API_PATH = 'http://search.maven.org/solrsearch/select?rows=20&wt=json&q=a:%22~%22'
 
 # Serve page
 get '/' do
@@ -55,7 +55,7 @@ end
 # Find Projects on SourceForge
 def findSourceForgeProjects(term, matches)
   begin
-    uri = URI.parse("#{SOURCEFORGE_API_PATH}#{term}/json")
+    uri = URI.parse(SOURCEFORGE_API_PATH.sub('~', term))
     http = Net::HTTP.new(uri.host, uri.port)
     request = Net::HTTP::Get.new(uri.request_uri)
     res = http.request(request)
@@ -75,7 +75,7 @@ end
 # Find Projects on Github
 def findGithubProjects(term, matches)
   begin
-    uri = URI.parse("#{GITHUB_API_PATH}#{term}?sort=forks")
+    uri = URI.parse(GITHUB_API_PATH.sub('~', term))
     http = Net::HTTP.new(uri.host, 443)
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -94,7 +94,7 @@ end
 # Find RubyGems
 def findRubyGems(term, matches)
   begin
-    uri = URI.parse("#{RUBYGEMS_API_PATH}#{term}")
+    uri = URI.parse(RUBYGEMS_API_PATH.sub('~', term))
     http = Net::HTTP.new(uri.host, 443)
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -124,7 +124,7 @@ end
 # Find Packages on Maven
 def findMavenPackages(term, matches)
   begin
-    uri = URI.parse("#{MAVEN_API_PATH}%22#{term}%22")
+    uri = URI.parse(MAVEN_API_PATH.sub('~', term))
     http = Net::HTTP.new(uri.host, uri.port)
     request = Net::HTTP::Get.new(uri.request_uri)
     res = http.request(request)
