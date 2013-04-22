@@ -43,58 +43,70 @@ end
 
 # Find Projects on SourceForge
 def findSourceForgeProjects(term, matches)
-  uri = URI.parse("#{SOURCEFORGE_API_PATH}#{term}/json")
-  http = Net::HTTP.new(uri.host, uri.port)
-  request = Net::HTTP::Get.new(uri.request_uri)
-  res = http.request(request)
-  rhash = JSON.parse(res.body)
-  if rhash.has_key?('Project')
-    maintainers = ''
-    rhash['Project']['maintainers'].each do |maintainer|
-      maintainers << "#{maintainer['name']}, "
+  begin
+    uri = URI.parse("#{SOURCEFORGE_API_PATH}#{term}/json")
+    http = Net::HTTP.new(uri.host, uri.port)
+    request = Net::HTTP::Get.new(uri.request_uri)
+    res = http.request(request)
+    rhash = JSON.parse(res.body)
+    if rhash.has_key?('Project')
+      maintainers = ''
+      rhash['Project']['maintainers'].each do |maintainer|
+        maintainers << "#{maintainer['name']}, "
+      end
+      maintainers = maintainers[0..-3]
+      matches << {:name => rhash['Project']['name'], :by => maintainers, :url => rhash['Project']['summary-page'], :description => rhash['Project']['description'], :source => 'SourceForge', :exact => true}
     end
-    maintainers = maintainers[0..-3]
-    matches << {:name => rhash['Project']['name'], :by => maintainers, :url => rhash['Project']['summary-page'], :description => rhash['Project']['description'], :source => 'SourceForge', :exact => true}
+  rescue
   end
 end
 
 # Find Projects on Github
 def findGithubProjects(term, matches)
-  uri = URI.parse("#{GITHUB_API_PATH}#{term}?sort=forks")
-  http = Net::HTTP.new(uri.host, 443)
-  http.use_ssl = true
-  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-  request = Net::HTTP::Get.new(uri.request_uri)
-  res = http.request(request)
-  rhash = JSON.parse(res.body)
-  rhash['repositories'].each do |repo|
-    if repo['forks'] > GITHUB_MIN_FORKS
-      matches << {:name => repo['name'], :by => repo['username'], :url => repo['url'], :description => repo['description'], :source => 'GitHub', :exact => (term == repo['name'])}
+  begin
+    uri = URI.parse("#{GITHUB_API_PATH}#{term}?sort=forks")
+    http = Net::HTTP.new(uri.host, 443)
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    request = Net::HTTP::Get.new(uri.request_uri)
+    res = http.request(request)
+    rhash = JSON.parse(res.body)
+    rhash['repositories'].each do |repo|
+      if repo['forks'] > GITHUB_MIN_FORKS
+        matches << {:name => repo['name'], :by => repo['username'], :url => repo['url'], :description => repo['description'], :source => 'GitHub', :exact => (term == repo['name'])}
+      end
     end
+  rescue
   end
 end
 
 # Find RubyGems
 def findRubyGems(term, matches)
-  uri = URI.parse("#{RUBYGEMS_API_PATH}#{term}")
-  http = Net::HTTP.new(uri.host, 443)
-  http.use_ssl = true
-  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-  request = Net::HTTP::Get.new(uri.request_uri)
-  res = http.request(request)
-  rhash = JSON.parse(res.body)
-  rhash.each do |rubygem|
-    matches << {:name => rubygem['name'], :by => rubygem['authors'], :url => rubygem['project_uri'], :description => rubygem['info'], :source => 'Ruby Gems', :exact => (term == rubygem['name'])}
+  begin
+    uri = URI.parse("#{RUBYGEMS_API_PATH}#{term}")
+    http = Net::HTTP.new(uri.host, 443)
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    request = Net::HTTP::Get.new(uri.request_uri)
+    res = http.request(request)
+    rhash = JSON.parse(res.body)
+    rhash.each do |rubygem|
+      matches << {:name => rubygem['name'], :by => rubygem['authors'], :url => rubygem['project_uri'], :description => rubygem['info'], :source => 'Ruby Gems', :exact => (term == rubygem['name'])}
+    end
+  rescue
   end
 end
 
 # Find PyPI Packages
 def findPyPIPackages(term, matches)
-  client = XMLRPC::Client.new2("#{PYPI_API_PATH}")
-  client.http_header_extra = {"Content-Type" => "text/xml"}
-  result = client.call('search', {'name' => term})
-  result.each do |package|
-    matches << {:name => package['name'], :by => '', :url => "https://pypi.python.org/pypi/#{package['name']}/", :description => package['summary'], :source => 'PyPI', :exact => (term == package['name'])}
+  begin
+    client = XMLRPC::Client.new2("#{PYPI_API_PATH}")
+    client.http_header_extra = {"Content-Type" => "text/xml"}
+    result = client.call('search', {'name' => term})
+    result.each do |package|
+      matches << {:name => package['name'], :by => '', :url => "https://pypi.python.org/pypi/#{package['name']}/", :description => package['summary'], :source => 'PyPI', :exact => (term == package['name'])}
+    end
+  rescue
   end
 end
 
