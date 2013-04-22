@@ -1,0 +1,100 @@
+body {
+  margin:0;
+  padding:0;
+  background-color: #eee;
+  font-family: "Helvetica Neue", "Helvetica", "Lucida Grande", "Lucida Sans", "Verdana", "Arial", sans-serif;
+}
+
+#index h1 {
+  margin-top:6em;
+  text-align: center;
+  color: #66c;
+  font-size: 2em;
+  font-weight: 300;
+}
+
+#index form {
+  margin: 0 auto;
+  text-align: center;
+}
+
+#index form input {
+  color: #66c;
+  font-size: 1em;
+  font-weight: 300;
+}
+
+#description {
+  margin-top: 8em;
+}
+
+#description p {
+  text-align: center;
+  color: #777;
+  font-size: 0.8em;
+  line-height: 0.8em;
+}
+
+#header {
+  background-color: #ddd;
+  padding:0.3em;
+}
+
+#header h1 {
+  text-align: center;
+  color: #66c;
+  font-size: 2em;
+  font-weight: 300;
+}
+
+#header form {
+  margin: 0 auto;
+  text-align: center;
+}
+
+#header form input {
+  color: #66c;
+  font-size: 1em;
+  font-weight: 300;
+}
+
+#result {
+  padding: 1em;
+}
+
+#result h1 {
+  color: #66c;
+  text-align: center;
+  font-weight: 700;
+  font-size: 3em;
+}
+
+#result h2 {
+  color: #66c;
+  font-weight: 300;
+}
+
+#result table {
+  width:95%;
+  margin: 0 auto;
+}
+
+#result table, th, td {
+  border: 1px solid gray;
+}
+
+#result th {
+  background-color: #99d;
+}
+
+#footer {
+  background-color: #ddd;
+  padding:0.5em;
+}
+
+#footer p {
+  text-align: center;
+  color: #444;
+  font-size: 0.8em;
+  line-height: 0.8em;
+}
