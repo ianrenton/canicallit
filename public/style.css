@@ -87,6 +87,7 @@ body {
 }
 
 #footer {
+  margin-top: 3em;
   background-color: #ddd;
   padding:0.5em;
 }
