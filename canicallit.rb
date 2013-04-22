@@ -13,7 +13,7 @@ require 'nokogiri'
 require 'xmlrpc/client'
 
 GITHUB_API_PATH = 'http://api.github.com/legacy/repos/search/'
-GITHUB_MIN_FORKS = 10 # Min. number of forks to qualify as a meaningful Github project
+GITHUB_MIN_FORKS = 5 # Min. number of forks to qualify as a meaningful Github project
 RUBYGEMS_API_PATH = 'https://rubygems.org/api/v1/search.json?query='
 PYPI_API_PATH = 'http://pypi.python.org/pypi'
 SOURCEFORGE_API_PATH = 'http://sourceforge.net/api/project/name/'
@@ -34,6 +34,7 @@ get '/' do
 
     # Mangle the Matches arrays as necessary
     matches.uniq!
+    matches.sort!{ |x,y| x[:name].downcase <=> y[:name].downcase }
     exactMatches = matches.select{ |match| (match[:exact] == true)}
     matches = matches - exactMatches
 
