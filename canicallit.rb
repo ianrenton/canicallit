@@ -18,6 +18,8 @@ RUBYGEMS_API_PATH = 'https://rubygems.org/api/v1/search.json?query=~'
 PYPI_API_PATH = 'http://pypi.python.org/pypi'
 SOURCEFORGE_API_PATH = 'http://sourceforge.net/api/project/name/~/json'
 MAVEN_API_PATH = 'http://search.maven.org/solrsearch/select?rows=20&wt=json&q=a:%22~%22'
+DEBIAN_PACKAGES_PATH = 'http://packages.debian.org/search?keywords=~&searchon=names&suite=all&section=all'
+DEBIAN_BASE_URL = 'http://packages.debian.org'
 FEDORA_PACKAGEDB_API_PATH = 'https://admin.fedoraproject.org/pkgdb/acls/name/~?tg_format=json'
 
 # Serve page
@@ -32,6 +34,7 @@ get '/' do
     findRubyGems(term, matches)
     findPyPIPackages(term, matches)
     findMavenPackages(term, matches)
+    findDebianPackages(term, matches)
     findFedoraPackages(term, matches)
 
     # Mangle the Matches arrays as necessary
@@ -119,7 +122,7 @@ def findPyPIPackages(term, matches)
     client.http_header_extra = {"Content-Type" => "text/xml"}
     result = client.call('search', {'name' => term})
     result.each do |package|
-      matches << {:name => package['name'], :by => '', :url => "https://pypi.python.org/pypi/#{package['name']}/", :description => package['summary'], :source => 'PyPI', :exact => (term.downcase == package['name'].downcase)}
+      matches << {:name => package['name'], :by => '', :url => "#{PYPI_API_PATH}/#{package['name']}", :description => package['summary'], :source => 'PyPI', :exact => (term.downcase == package['name'].downcase)}
     end
   rescue
   end
@@ -135,6 +138,25 @@ def findMavenPackages(term, matches)
     rhash = JSON.parse(res.body)
     rhash['response']['docs'].each do |package|
       matches << {:name => package['a'], :by => '', :url => "http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22#{package['a']}%22", :description => '', :source => 'Maven', :exact => (term.downcase == package['a'].downcase)}
+    end
+  rescue
+  end
+end
+
+# Find Packages on Debian package database
+def findDebianPackages(term, matches)
+  begin
+    uri = URI.parse(DEBIAN_PACKAGES_PATH.sub('~', term))
+    source = Net::HTTP.get(uri)
+    doc = Nokogiri::HTML(source)
+    # Search the results div for h3 blocks, these have the package names
+    doc.xpath('//div[./@id="psearchres"]/h3').each do |h3|
+      name = h3.content.sub(/^Package /, '')
+      li = h3.xpath('following-sibling::ul/li').first
+      url = DEBIAN_BASE_URL + li.xpath('a/@href').first.value
+      description = li.content.lines.to_a[1]
+
+      matches << {:name => name, :url => url, :description => description, :source => 'Debian', :exact => (term.downcase == name.downcase)}
     end
   rescue
   end
