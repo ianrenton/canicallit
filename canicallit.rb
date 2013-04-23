@@ -87,6 +87,8 @@ def findGithubProjects(term, matches)
     rhash['repositories'].each do |repo|
       if repo['forks'] > GITHUB_MIN_FORKS
         matches << {:name => repo['name'], :by => repo['username'], :url => repo['url'], :description => repo['description'], :source => 'GitHub', :exact => (term.downcase == repo['name'].downcase)}
+      else
+        break
       end
     end
   rescue
