@@ -18,6 +18,7 @@ RUBYGEMS_API_PATH = 'https://rubygems.org/api/v1/search.json?query=~'
 PYPI_API_PATH = 'http://pypi.python.org/pypi'
 SOURCEFORGE_API_PATH = 'http://sourceforge.net/api/project/name/~/json'
 MAVEN_API_PATH = 'http://search.maven.org/solrsearch/select?rows=20&wt=json&q=a:%22~%22'
+FEDORA_PACKAGEDB_API_PATH = 'https://admin.fedoraproject.org/pkgdb/acls/name/~?tg_format=json'
 
 # Serve page
 get '/' do
@@ -31,6 +32,7 @@ get '/' do
     findRubyGems(term, matches)
     findPyPIPackages(term, matches)
     findMavenPackages(term, matches)
+    findFedoraPackages(term, matches)
 
     # Mangle the Matches arrays as necessary
     matches.uniq!
@@ -131,6 +133,24 @@ def findMavenPackages(term, matches)
     rhash = JSON.parse(res.body)
     rhash['response']['docs'].each do |package|
       matches << {:name => package['a'], :by => '', :url => "http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22#{package['a']}%22", :description => '', :source => 'Maven', :exact => (term.downcase == package['a'].downcase)}
+    end
+  rescue
+  end
+end
+
+# Find Packages on Fedora PackageDB
+def findFedoraPackages(term, matches)
+  begin
+    uri = URI.parse(FEDORA_PACKAGEDB_API_PATH.sub('~', term))
+    http = Net::HTTP.new(uri.host, 443)
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    request = Net::HTTP::Get.new(uri.request_uri)
+    res = http.request(request)
+    rhash = JSON.parse(res.body)
+    if rhash['packageListings'].length > 0
+      package = rhash['packageListings'][0]
+      matches << {:name => package['package']['name'], :by => package['owner'], :url => "https://admin.fedoraproject.org/pkgdb/acls/name/#{term}", :description => package['package']['summary'], :source => 'Fedora PackageDB', :exact => true}
     end
   rescue
   end
