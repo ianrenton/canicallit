@@ -160,7 +160,7 @@ end
 def printHTML(term, exactMatches, matches)
   html = ''
 
-  if matches.length == 0
+  if (matches.length == 0) && (exactMatches.length == 0)
     html << "<h1>Yes.</h1><h2>You can call your project '#{term}', it's unique!</h2>"
   elsif exactMatches.length == 0
     html << "<h1>Maybe.</h1><h2>We didn't find any exact matches for '#{term}', but we did find #{matches.length} similarly-named project(s).</h2>"
@@ -176,10 +176,12 @@ def printHTML(term, exactMatches, matches)
       html << "<tr><td><a href='#{match[:url]}'>#{match[:name]}</a></td><td>#{match[:by]}</td><td>#{match[:source]}</td><td>#{match[:description]}</td></tr>"
     end
     html << '</table>'
-    html << "<h2>We also found #{matches.length} project(s) with similar names.</h2>"
-    html << '<table border=1 cellspacing=0 cellpadding=3><tr><th>Project</th><th>By...</th><th>Found on...</th><th>Description</th></tr>'
-    matches.each do |match|
-      html << "<tr><td><a href='#{match[:url]}'>#{match[:name]}</a></td><td>#{match[:by]}</td><td>#{match[:source]}</td><td>#{match[:description]}</td></tr>"
+    if matches.length > 0
+      html << "<h2>We also found #{matches.length} project(s) with similar names.</h2>"
+      html << '<table border=1 cellspacing=0 cellpadding=3><tr><th>Project</th><th>By...</th><th>Found on...</th><th>Description</th></tr>'
+      matches.each do |match|
+        html << "<tr><td><a href='#{match[:url]}'>#{match[:name]}</a></td><td>#{match[:by]}</td><td>#{match[:source]}</td><td>#{match[:description]}</td></tr>"
+      end
     end
     html << '</table>'
   end
