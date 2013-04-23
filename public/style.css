@@ -97,3 +97,14 @@ body {
   color: #444;
   font-size: 0.8em;
 }
+
+#metadata {
+  margin-top: 3em;
+  padding:0.5em;
+}
+
+#metadata p {
+  text-align: center;
+  color: #666;
+  font-size: 0.8em;
+}
