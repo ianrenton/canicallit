@@ -12,8 +12,8 @@ require 'json'
 require 'nokogiri'
 require 'xmlrpc/client'
 
-GITHUB_API_PATH = 'http://api.github.com/legacy/repos/search/~?sort=forks'
-GITHUB_MIN_FORKS = 5 # Min. number of forks to qualify as a meaningful Github project
+GITHUB_API_PATH = 'http://api.github.com/legacy/repos/search/~?sort=stars'
+GITHUB_MIN_WATCHERS = 5 # Min. number of watchers to qualify as a meaningful Github project
 RUBYGEMS_API_PATH = 'https://rubygems.org/api/v1/search.json?query=~'
 PYPI_API_PATH = 'http://pypi.python.org/pypi'
 SOURCEFORGE_API_PATH = 'http://sourceforge.net/api/project/name/~/json'
@@ -85,7 +85,7 @@ def findGithubProjects(term, matches)
     res = http.request(request)
     rhash = JSON.parse(res.body)
     rhash['repositories'].each do |repo|
-      if repo['forks'] > GITHUB_MIN_FORKS
+      if repo['watchers'] > GITHUB_MIN_WATCHERS
         matches << {:name => repo['name'], :by => repo['username'], :url => repo['url'], :description => repo['description'], :source => 'GitHub', :exact => (term.downcase == repo['name'].downcase)}
       else
         break

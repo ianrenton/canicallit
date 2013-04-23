@@ -3,7 +3,7 @@ Can I Call It...?
 
 "Can I Call It...?" is a simple script for checking if the name you'd like for your new, shiny project has already been used by somebody else.
 
-It uses project data from [Github][1], [SourceForge][2], [Ruby Gems][3], [PyPI][4], [Maven][5] and the [Fedora PackageDB][8]. (Only Github repositories with >5 forks are considered 'significant' enough to worry about.)
+It uses project data from [Github][1], [SourceForge][2], [Ruby Gems][3], [PyPI][4], [Maven][5] and [Fedora][8]. (Only Github repositories with >5 watchers (stars) are considered 'significant' enough to worry about.)
 
 It was written by [Ian Renton][6]. Source code is available under the [BSD licence][7].
 
