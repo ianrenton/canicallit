@@ -184,7 +184,9 @@ end
 def printHTML(term, exactMatches, matches)
   html = ''
 
-  if (matches.length == 0) && (exactMatches.length == 0)
+  if term == 'canicallit'
+    html << "<h1>No.</h1><h2 style='text-align:center;'>That would just be rude.</h2>"
+  elsif (matches.length == 0) && (exactMatches.length == 0)
     html << "<h1>Yes.</h1><h2>You can call your project '#{term}', it's unique!</h2>"
   elsif exactMatches.length == 0
     html << "<h1>Maybe.</h1><h2>We didn't find any exact matches for '#{term}', but we did find #{matches.length} similarly-named project(s).</h2>"
