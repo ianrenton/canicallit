@@ -109,6 +109,10 @@ body {
   font-size: 0.8em;
 }
 
+#metadata span.error {
+  color: red;
+}
+
 .modal {
     display:    none;
     position:   fixed;
