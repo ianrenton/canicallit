@@ -43,8 +43,8 @@ get '/' do
     exactMatches = matches.select{ |match| (match[:exact] == true)}
     matches = matches - exactMatches
 
-    # Generate results output
-    erb :results, :locals => {:term => term, :result => printHTML(term, exactMatches, matches)}
+    # Generate results output using a template
+    generateResults(term, exactMatches, matches)
   else
     # Generate main page output
     erb :index
@@ -180,36 +180,25 @@ def findFedoraPackages(term, matches)
   end
 end
 
-# Print the HTML for the results. Quick and dirty.
-def printHTML(term, exactMatches, matches)
-  html = ''
+# Generate results output using a template
+def generateResults(term, exactMatches, matches)
 
   if term == 'canicallit'
-    html << "<h1>No.</h1><h2 style='text-align:center;'>That would just be rude.</h2>"
+    heading = 'No.<br/><br/>That would just be rude.'
   elsif (matches.length == 0) && (exactMatches.length == 0)
-    html << "<h1>Yes.</h1><h2>You can call your project '#{term}', it's unique!</h2>"
+    heading = 'Yes.'
+    summary1 = "You can call your project '#{term}', it's unique!"
   elsif exactMatches.length == 0
-    html << "<h1>Maybe.</h1><h2>We didn't find any exact matches for '#{term}', but we did find #{matches.length} similarly-named project(s).</h2>"
-    html << '<table border=1 cellspacing=0 cellpadding=3><tr><th>Project</th><th>By...</th><th>Found on...</th><th>Description</th></tr>'
-    matches.each do |match|
-      html << "<tr><td><a href='#{match[:url]}'>#{match[:name]}</a></td><td>#{match[:by]}</td><td>#{match[:source]}</td><td>#{match[:description]}</td></tr>"
-    end
-    html << '</table>'
+    heading = 'Maybe.'
+    summary3 = "We didn't find any exact matches for '#{term}', but we did find #{matches.length} similarly-named project(s)."
   else
-    html << "<h1>No.</h1><h2>We found #{exactMatches.length} project(s) called '#{term}'.</h2>"
-    html << '<table border=1 cellspacing=0 cellpadding=3><tr><th>Project</th><th>By...</th><th>Found on...</th><th>Description</th></tr>'
-    exactMatches.each do |match|
-      html << "<tr><td><a href='#{match[:url]}'>#{match[:name]}</a></td><td>#{match[:by]}</td><td>#{match[:source]}</td><td>#{match[:description]}</td></tr>"
-    end
-    html << '</table>'
+    heading = 'No.'
+    summary2 = "We found #{exactMatches.length} project(s) called '#{term}'."
     if matches.length > 0
-      html << "<h2>We also found #{matches.length} project(s) with similar names.</h2>"
-      html << '<table border=1 cellspacing=0 cellpadding=3><tr><th>Project</th><th>By...</th><th>Found on...</th><th>Description</th></tr>'
-      matches.each do |match|
-        html << "<tr><td><a href='#{match[:url]}'>#{match[:name]}</a></td><td>#{match[:by]}</td><td>#{match[:source]}</td><td>#{match[:description]}</td></tr>"
-      end
+      summary3 = "We also found #{matches.length} project(s) with similar names."
     end
-    html << '</table>'
   end
+
+  erb :results, :locals => {:term => term, :heading => heading, :summary1 => summary1, :summary2 => summary2, :summary3 => summary3, :exactMatches => exactMatches, :matches => matches}
 
 end

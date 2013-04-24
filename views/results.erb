@@ -13,7 +13,43 @@
       </form>
     </div>
     <div id="result">
-      <%= result %>
+
+      <h1><%= heading %></h1>
+
+      <% if defined? summary1 %>
+        <h2><%= summary1 %></h2>
+      <% end %>
+
+      <% if exactMatches.length > 0 %>
+        <h2><%= summary2 %></h2>
+        <table border=1 cellspacing=0 cellpadding=3>
+          <tr><th>Project</th><th>By...</th><th>Found on...</th><th>Description</th></tr>
+          <% exactMatches.each do |m| %>
+            <tr>
+              <td><a href='<%= m[:url] %>'><%= m[:name] %></a></td>
+              <td><%= m[:by] %></td>
+              <td><%= m[:source] %></td>
+              <td><%= m[:description] %></td>
+            </tr>
+          <% end %>
+        </table>
+      <% end %>
+
+      <% if matches.length > 0 %>
+        <h2><%= summary3 %></h2>
+        <table border=1 cellspacing=0 cellpadding=3>
+          <tr><th>Project</th><th>By...</th><th>Found on...</th><th>Description</th></tr>
+          <% matches.each do |m| %>
+            <tr>
+              <td><a href='<%= m[:url] %>'><%= m[:name] %></a></td>
+              <td><%= m[:by] %></td>
+              <td><%= m[:source] %></td>
+              <td><%= m[:description] %></td>
+            </tr>
+          <% end %>
+        </table>
+      <% end %>
+
     </div>
     <div id="metadata">
       <p>This result was based on project data from <a href="https://github.com">Github</a>, <a href="http://sourceforge.net">SourceForge</a>, <a href="http://rubygems.org">Ruby Gems</a>, <a href="http://pypi.python.org">PyPI</a>, <a href="http://search.maven.org">Maven</a>, <a href="http://packages.debian.org">Debian</a> and <a href="https://admin.fedoraproject.org/pkgdb">Fedora</a>.<br/>No checking is performed to find 'duplicate-ish' results, e.g. a Ruby Gem that uses Github for version control may be listed twice.<br/>Only Github repositories with >5 watchers are considered 'significant' enough to worry about.</p>
