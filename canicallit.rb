@@ -22,37 +22,43 @@ DEBIAN_PACKAGES_PATH = 'http://packages.debian.org/search?keywords=~&searchon=na
 DEBIAN_BASE_URL = 'http://packages.debian.org'
 FEDORA_PACKAGEDB_API_PATH = 'https://admin.fedoraproject.org/pkgdb/acls/name/~?tg_format=json'
 
-# Serve page
+# Serve home page or redirect
 get '/' do
-  if params.has_key?("search")
-    term = params['search']
-    matches = []
-    allServices = ['SourceForge', 'GitHub', 'Ruby Gems', 'PyPI', 'Maven', 'Debian', 'Fedora']
-    erroredServices = []
-    errors = []
-
-    # Populate Matches array
-    findSourceForgeProjects(term, matches, erroredServices)
-    findGithubProjects(term, matches, erroredServices)
-    findRubyGems(term, matches, erroredServices)
-    findPyPIPackages(term, matches, erroredServices)
-    findMavenPackages(term, matches, erroredServices)
-    findDebianPackages(term, matches, erroredServices)
-    findFedoraPackages(term, matches, erroredServices)
-
-    # Mangle the result arrays as necessary
-    matches.uniq!
-    matches.sort!{ |x,y| x[:name].downcase <=> y[:name].downcase }
-    exactMatches = matches.select{ |match| (match[:exact] == true)}
-    matches = matches - exactMatches
-    okServices = allServices - erroredServices
-
-    # Generate results output using a template
-    generateResults(term, exactMatches, matches, okServices, erroredServices)
+  if params.has_key?('search')
+    # Redirect to nicer URL
+    redirect "/#{params['search']}", 303
   else
     # Generate main page output
     erb :index
   end
+end
+
+# Serve result page
+get '/:term' do
+  term = params['term']
+  matches = []
+  allServices = ['SourceForge', 'GitHub', 'Ruby Gems', 'PyPI', 'Maven', 'Debian', 'Fedora']
+  erroredServices = []
+  errors = []
+
+  # Populate Matches array
+  findSourceForgeProjects(term, matches, erroredServices)
+  findGithubProjects(term, matches, erroredServices)
+  findRubyGems(term, matches, erroredServices)
+  findPyPIPackages(term, matches, erroredServices)
+  findMavenPackages(term, matches, erroredServices)
+  findDebianPackages(term, matches, erroredServices)
+  findFedoraPackages(term, matches, erroredServices)
+
+  # Mangle the result arrays as necessary
+  matches.uniq!
+  matches.sort!{ |x,y| x[:name].downcase <=> y[:name].downcase }
+  exactMatches = matches.select{ |match| (match[:exact] == true)}
+  matches = matches - exactMatches
+  okServices = allServices - erroredServices
+
+  # Generate results output using a template
+  generateResults(term, exactMatches, matches, okServices, erroredServices)
 end
 
 # 404
