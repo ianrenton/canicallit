@@ -5,6 +5,7 @@ GEM
     kgio (2.8.0)
     nokogiri (1.5.9)
     rack (1.5.2)
+    rack-google-analytics (0.11.0)
     rack-protection (1.5.0)
       rack
     rack-throttle (0.3.0)
@@ -27,6 +28,7 @@ DEPENDENCIES
   json
   nokogiri
   rack
+  rack-google-analytics
   rack-throttle
   sinatra
   unicorn

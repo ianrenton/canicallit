@@ -16,3 +16,15 @@ It was written by [Ian Renton][6]. Source code is available under the [BSD licen
  [7]: https://github.com/ianrenton/canicallit/blob/master/LICENCE.md
  [8]: https://admin.fedoraproject.org/pkgdb
  [9]: http://packages.debian.org
+
+I just want to use it!
+----------------------
+
+That's OK! There's a version running at [cici.onlydreaming.net](http://cici.onlydreaming.net). It's a little slow and will buckle if Slashdot/Reddit/Hacker News find it, but it should be OK for casual use.
+
+I want my own copy!
+-------------------
+
+That's fine too! Just clone this repo and you'll be on your way. There's no environment variables or anything to set up, but if you're running your own copy, you probably want to change or remove the Google Analytics ID in `config.ru`.
+
+"Can I Call It...?" is provided with a `Procfile` so it should be ready to go as a Heroku app, and can be run locally with `foreman start`.
