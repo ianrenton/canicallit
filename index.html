@@ -50,10 +50,10 @@
     // Globals
     GITHUB_API_PATH = 'http://api.github.com/legacy/repos/search/~'
     GITHUB_MIN_WATCHERS = 5 // Min. number of watchers to qualify as a meaningful Github project
-    RUBYGEMS_API_PATH = 'https://rubygems.org/api/v1/search.json?query=~'
+    RUBYGEMS_API_PATH = 'https://cors-anywhere.herokuapp.com/https://rubygems.org/api/v1/search.json?query=~'
     PYPI_API_PATH = 'https://pypi.org/pypi/~/json'
-    MAVEN_API_PATH = 'http://search.maven.org/solrsearch/select?rows=10&wt=json&q=a:%22~%22'
-    DEBIAN_API_PATH = 'https://sources.debian.org/api/search/~/'
+    MAVEN_API_PATH = 'https://cors-anywhere.herokuapp.com/http://search.maven.org/solrsearch/select?rows=10&wt=json&q=a:%22~%22'
+    DEBIAN_API_PATH = 'https://cors-anywhere.herokuapp.com/https://sources.debian.org/api/search/~/'
     FEDORA_PACKAGEDB_API_PATH = 'https://apps.fedoraproject.org/packages/fcomm_connector/xapian/query/search_packages/%7B%22filters%22:%7B%22search%22:%22~%22%7D,%22rows_per_page%22:10,%22start_row%22:0%7D'
     matches = [];
     allServices = ['GitHub', 'Ruby Gems', 'PyPI', 'Maven', 'Debian', 'Fedora'];
@@ -214,7 +214,7 @@
           if (pkg.name.toLowerCase().includes(query.toLowerCase())) {
             var newMatch = { };
             newMatch["name"] = pkg.name;
-            newMatch["url"] = 'https://packages.debian.org/stable/' + exactHit.name;
+            newMatch["url"] = 'https://packages.debian.org/stable/' + pkg.name;
             newMatch["author"] = "";
             newMatch["source"] = "Debian";
             newMatch["description"] = "";
