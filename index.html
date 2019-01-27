@@ -39,7 +39,7 @@
     </div>
     <div id="metadata">
     </div>
-    <div id="footer">
+    <div id="footer" class="footer-fix">
       <p>"Can I Call It...?" is a simple script for checking if the name you'd like for your new, shiny project has already been used by somebody else.</p>
       <p>It was written by <a href="http://ianrenton.com">Ian Renton</a>. Source code is available on <a href="https://github.com/ianrenton/canicallit">Github</a> under the <a href="https://github.com/ianrenton/canicallit/blob/master/LICENCE.md">BSD licence</a>.</p>
     </div>
@@ -330,6 +330,13 @@
         $("#result").show();
         $("#metadata").show();
         firstResultIn = true;
+      }
+      
+      // Fix footer or not
+      if ($(document).height() > window.innerHeight) {
+        $("#footer").removeClass("footer-fix");
+      } else {
+        $("#footer").addClass("footer-fix");
       }
       
       // Remove loading animation when done
