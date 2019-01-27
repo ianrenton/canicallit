@@ -150,7 +150,6 @@
         if (xmlHttp.readyState == 4) {
           if (xmlHttp.status == 200) {
             info = JSON.parse(xmlHttp.responseText).info;
-            alert(JSON.stringify(info));
             var newMatch = { };
               newMatch["name"] = info.name;
             newMatch["url"] = info.project_url;
