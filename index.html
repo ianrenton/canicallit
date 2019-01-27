@@ -1,0 +1,378 @@
+<html>
+  <head>
+    <title>Can I call it...?</title>
+    <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+  </head>
+  <body onload="checkForSearchQuery()">
+    <a href="https://github.com/ianrenton/canicallit" style="position: absolute; top: 0; right: 0;"><img style="border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
+    <div id="header">
+      <form id="form">
+        <h1>Can I Call It...
+          <input type="text" name="search" id="search" value="" autofocus="autofocus"/> ?
+          <input type="submit" style="position: absolute; left: -9999px"/>
+        </h1>
+      </form>
+    </div>
+    <div id="result">
+      <h1 id="heading"></h1>
+
+      <div id="summary1div">
+        <h2 id="summary1"></h2>
+      </div>
+
+      <div id="summary2div">
+        <h2 id="summary2"></h2>
+        <table id="exactMatches" border=1 cellspacing=0 cellpadding=3>
+          <thead><tr><th>Project</th><th>By...</th><th>Found on...</th><th>Description</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+
+      <div id="summary3div">
+        <h2 id="summary3"></h2>
+        <table id="partialMatches" border=1 cellspacing=0 cellpadding=3>
+          <thead><tr><th>Project</th><th>By...</th><th>Found on...</th><th>Description</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+    </div>
+    <div id="metadata">
+    </div>
+    <div id="footer">
+      <p>"Can I Call It...?" is a simple script for checking if the name you'd like for your new, shiny project has already been used by somebody else.</p>
+      <p>It was written by <a href="http://ianrenton.com">Ian Renton</a>. Source code is available on <a href="https://github.com/ianrenton/canicallit">Github</a> under the <a href="https://github.com/ianrenton/canicallit/blob/master/LICENCE.md">BSD licence</a>.</p>
+    </div>
+
+    <div class="modal"></div>
+    
+    <script>
+    // Globals
+    GITHUB_API_PATH = 'http://api.github.com/legacy/repos/search/~'
+    GITHUB_MIN_WATCHERS = 5 // Min. number of watchers to qualify as a meaningful Github project
+    RUBYGEMS_API_PATH = 'https://rubygems.org/api/v1/search.json?query=~'
+    PYPI_API_PATH = 'https://pypi.org/pypi/~/json'
+    MAVEN_API_PATH = 'http://search.maven.org/solrsearch/select?rows=10&wt=json&q=a:%22~%22'
+    DEBIAN_API_PATH = 'https://sources.debian.org/api/search/~/'
+    FEDORA_PACKAGEDB_API_PATH = 'https://apps.fedoraproject.org/packages/fcomm_connector/xapian/query/search_packages/%7B%22filters%22:%7B%22search%22:%22~%22%7D,%22rows_per_page%22:10,%22start_row%22:0%7D'
+    matches = [];
+    allServices = ['GitHub', 'Ruby Gems', 'PyPI', 'Maven', 'Debian', 'Fedora'];
+    finishedServices = [];
+    erroredServices = [];
+    firstResultIn = false;
+    
+    // Handle pages called with "?search=something" for backwards compatability
+    function checkForSearchQuery() {
+      urlParams = new URLSearchParams(window.location.search);
+      searchParam = urlParams.get('search');
+      if (searchParam != null && searchParam.length > 0)
+      {
+        $("#search").val(searchParam);
+        search(searchParam);
+      }
+    }
+    
+    // Handle normal form searches
+    $('form').submit(function(e) {
+      e.preventDefault();
+      search($("#search").val());
+      return false;
+    });
+    
+    // Actual search code
+    function search(query) {
+      // Show loading animation
+      $('body').addClass('loading');
+      
+      // Reset results
+      matches = [];
+      finishedServices = [];
+      erroredServices = [];
+    
+      // Set title
+      document.title = 'Can I Call It... ' + query + '?';
+      
+      // Populate Matches array with results (asynchronously)
+      findGithubProjects(query, matches, finishedServices, erroredServices);
+      findRubyGems(query, matches, finishedServices, erroredServices);
+      findPyPIPackages(query, matches, finishedServices, erroredServices);
+      findMavenPackages(query, matches, finishedServices, erroredServices);
+      findDebianPackages(query, matches, finishedServices, erroredServices);
+      findFedoraPackages(query, matches, finishedServices, erroredServices);
+    }
+    
+    // Query GitHub
+    function findGithubProjects(query, matches, finishedServices, erroredServices){
+      url = GITHUB_API_PATH.replace("~", query);
+      httpGetAsync(query, url, function(data, matches) {
+        obj = JSON.parse(data);
+        repos = obj.repositories;
+        for(var i = 0; i < Math.min(repos.length, 10); i++) {
+          var repo = repos[i];
+          if (repo.watchers >= GITHUB_MIN_WATCHERS && repo.name.toLowerCase().includes(query.toLowerCase())) {
+            var newMatch = { };
+            newMatch["name"] = repo.name;
+            newMatch["url"] = repo.url;
+            newMatch["author"] = repo.owner;
+            newMatch["source"] = "GitHub";
+            newMatch["description"] = repo.description;
+            matches.push(newMatch);
+          }
+        }
+      }, "GitHub", finishedServices, erroredServices);
+    }
+    
+    // Query Ruby Gems
+    function findRubyGems(query, matches, finishedServices, erroredServices){
+      url = RUBYGEMS_API_PATH.replace("~", query);
+      httpGetAsync(query, url, function(data, matches) {
+        packages = JSON.parse(data);
+        for(var i = 0; i < Math.min(packages.length, 10); i++) {
+          var pkg = packages[i];
+          if (pkg.name.toLowerCase().includes(query.toLowerCase())) {
+            var newMatch = { };
+            newMatch["name"] = pkg.name;
+            newMatch["url"] = pkg.project_uri;
+            newMatch["author"] = pkg.authors;
+            newMatch["source"] = "Ruby Gems";
+            newMatch["description"] = pkg.info;
+            matches.push(newMatch);
+          }
+        }
+      }, "Ruby Gems", finishedServices, erroredServices);
+    }
+    
+    // Query PyPI
+    function findPyPIPackages(query, matches, finishedServices, erroredServices){
+      url = PYPI_API_PATH.replace("~", query);
+      var xmlHttp = new XMLHttpRequest();
+      xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4) {
+          if (xmlHttp.status == 200) {
+            info = JSON.parse(xmlHttp.responseText).info;
+            alert(JSON.stringify(info));
+            var newMatch = { };
+              newMatch["name"] = info.name;
+            newMatch["url"] = info.project_url;
+            if (info.author != "UNKNOWN") {
+              newMatch["author"] = info.author;
+            } else {
+              newMatch["author"] = "";
+            }
+            newMatch["source"] = "PyPI";
+            if (info.summary != "UNKNOWN") {
+              newMatch["description"] = info.summary;
+            } else {
+              newMatch["description"] = "";
+            }
+            matches.push(newMatch);
+          }
+          finishedServices.push("PyPI");
+          updateResults(query, matches, finishedServices, erroredServices);
+        }
+      }
+      xmlHttp.open("GET", url, true);
+      xmlHttp.send();
+    }
+    
+    // Query Maven
+    function findMavenPackages(query, matches, finishedServices, erroredServices){
+      url = MAVEN_API_PATH.replace("~", query);
+      httpGetAsync(query, url, function(data, matches) {
+        packages = JSON.parse(data).response.docs;
+        for(var i = 0; i < packages.length; i++) {
+          var pkg = packages[i];
+          if (pkg.a.toLowerCase().includes(query.toLowerCase())) {
+            var newMatch = { };
+            newMatch["name"] = pkg.a;
+            newMatch["url"] = 'https://search.maven.org/artifact/' + pkg.g + '/' + pkg.a;
+            newMatch["author"] = pkg.g;
+            newMatch["source"] = "Maven";
+            newMatch["description"] = "";
+            matches.push(newMatch);
+          }
+        }
+      }, "Maven", finishedServices, erroredServices);
+    }
+    
+    // Query Debian
+    function findDebianPackages(query, matches, finishedServices, erroredServices){
+      url = DEBIAN_API_PATH.replace("~", query);
+      httpGetAsync(query, url, function(data, matches) {
+        exactHit = JSON.parse(data).results.exact;
+        if (exactHit != null) {
+          var newMatch = { };
+          newMatch["name"] = exactHit.name;
+          newMatch["url"] = 'https://packages.debian.org/stable/' + exactHit.name;
+          newMatch["author"] = "";
+          newMatch["source"] = "Debian";
+          newMatch["description"] = "";
+          matches.push(newMatch);
+        }
+        nearHits = JSON.parse(data).results.other;
+        for(var i = 0; i < nearHits.length; i++) {
+          var pkg = nearHits[i];
+          if (pkg.name.toLowerCase().includes(query.toLowerCase())) {
+            var newMatch = { };
+            newMatch["name"] = pkg.name;
+            newMatch["url"] = 'https://packages.debian.org/stable/' + exactHit.name;
+            newMatch["author"] = "";
+            newMatch["source"] = "Debian";
+            newMatch["description"] = "";
+            matches.push(newMatch);
+          }
+        }
+      }, "Debian", finishedServices, erroredServices);
+    }
+    
+    // Query Fedora
+    function findFedoraPackages(query, matches, finishedServices, erroredServices){
+      url = FEDORA_PACKAGEDB_API_PATH.replace("~", query);
+      httpGetAsync(query, url, function(data, matches) {
+        packages = JSON.parse(data).rows;
+        for(var i = 0; i < Math.min(packages.length, 10); i++) {
+          var pkg = packages[i];
+          if (pkg.name.toLowerCase().includes(query.toLowerCase())) {
+            var newMatch = { };
+            newMatch["name"] = pkg.name;
+            newMatch["url"] = pkg.upstream_url;
+            newMatch["author"] = "";
+            newMatch["source"] = "Fedora";
+            newMatch["description"] = pkg.summary;
+            matches.push(newMatch);
+          }
+        }
+      }, "Fedora", finishedServices, erroredServices);
+    }
+    
+    // Update the results display. Called asynchronously on receipt of responses
+    function updateResults(query, matches, finishedServices, erroredServices) {
+      // Mangle the result arrays as necessary
+      jQuery.unique(finishedServices);
+      jQuery.unique(erroredServices);
+      matches.sort(function(a, b){
+        if(a.name < b.name) { return -1; }
+        if(a.name > b.name) { return 1; }
+        return 0;});
+      var exactMatches = matches.filter(function (entry) { return entry.name == query; });
+      var partialMatches = matches.filter(function (entry) { return entry.name != query; });
+      
+      // Generate headings
+      if (query == 'canicallit') {
+        $("#heading").html('No.<br/><br/>That would just be rude.');
+        $("#summary1div").hide();
+        $("#summary2div").hide();
+        $("#summary3div").hide();
+      } else if ((matches.length == 0) && (exactMatches.length == 0)) {
+        $("#heading").html('Yes.');;
+        $("#summary1").html("You can call your project '" + query + "', it's unique!");
+        $("#summary1div").show();
+        $("#summary2div").hide();
+        $("#summary3div").hide();
+      } else if (exactMatches.length == 0) {
+        $("#heading").html('Maybe.');
+        $("#summary3").html("We didn't find any exact matches for '" + query + "', but we did find " + partialMatches.length + " similarly-named project(s).");
+        $("#summary1div").hide();
+        $("#summary2div").hide();
+        $("#summary3div").show();
+      } else {
+        $("#heading").html('No.');
+        $("#summary2").html("We found " + exactMatches.length + " project(s) called '" + query + "'.");
+        $("#summary1div").hide();
+        $("#summary2div").show();
+        if (matches.length > 0) {
+          $("#summary3").html("We also found " + partialMatches.length + " project(s) with similar names.");
+          $("#summary3div").show();
+        } else {
+          $("#summary3div").hide();
+        }
+      }
+      
+      // Populate tables
+      var exactMatchesContent = "";
+      var partialMatchesContent = "";
+      for (var i = 0; i < exactMatches.length; i++)
+      {
+        exactMatchesContent += '<tr><td><a href="' + exactMatches[i]["url"] + '">' + exactMatches[i]["name"] + '</a></td><td>' + exactMatches[i]["author"] + '</td><td>' + exactMatches[i]["source"] + '</td><td>' + exactMatches[i]["description"] + '</td></tr>';
+      }
+      $('#exactMatches > tbody').html(exactMatchesContent);
+      for (var i = 0; i < partialMatches.length; i++)
+      {
+        partialMatchesContent += '<tr><td><a href="' + partialMatches[i]["url"] + '">' + partialMatches[i]["name"] + '</a></td><td>' + partialMatches[i]["author"] + '</td><td>' + partialMatches[i]["source"] + '</td><td>' + partialMatches[i]["description"] + '</td></tr>';
+      }
+      $('#partialMatches > tbody').html(partialMatchesContent);
+      
+      // Set metadata
+      metaDataHTML = "<p>";
+      if (finishedServices.length > 0)
+      {
+        metaDataHTML += "This result was based on project data from:&nbsp;&nbsp;&nbsp;";
+        for (var i in finishedServices) {
+          metaDataHTML += finishedServices[i] + "&nbsp;&nbsp;&nbsp;";
+        }
+        metaDataHTML += "<br/>";
+      }
+      if (erroredServices.length > 0)
+      {
+        metaDataHTML += "<span class=\"error\">Due to a communication problem, this page does not include results from:&nbsp;&nbsp;&nbsp;";
+        for (var i in erroredServices) {
+          metaDataHTML += erroredServices[i] + "&nbsp;&nbsp;&nbsp;";
+        }
+        metaDataHTML += "</span><br/>";
+      }
+      metaDataHTML += "No checking is performed to find 'duplicate-ish' results, e.g. a Ruby Gem that uses Github for version control may be listed twice.<br/>Only Github repositories with &gt;" + GITHUB_MIN_WATCHERS + " watchers are considered 'significant' enough to worry about.</p>"
+      $("#metadata").html(metaDataHTML);
+      
+      // Shrink header & make results visible
+      if (!firstResultIn) {
+        $("#header").animate({
+          marginTop: '-=10em'
+        }, 1000);
+        $("#result").show();
+        $("#metadata").show();
+        firstResultIn = true;
+      }
+      
+      // Remove loading animation when done
+      if (finishedServices.length + erroredServices.length == allServices.length) {
+        $('body').removeClass('loading');
+      }
+    }
+    
+    // GET request utility method
+    function httpGetAsync(query, theUrl, callback, service, finishedServices, erroredServices)
+    {
+      var xmlHttp = createCORSRequest('GET', theUrl);
+      xmlHttp.onreadystatechange = function() {
+        if (xmlHttp.readyState == 4) {
+          if (xmlHttp.responseURL != "" && xmlHttp.status == 200) {
+            callback(xmlHttp.responseText, matches);
+            finishedServices.push(service);
+          } else {
+            erroredServices.push(service);
+          }
+        }
+        updateResults(query, matches, finishedServices, erroredServices);
+      }
+      xmlHttp.send();
+    }
+    
+    // CORS request utility method
+    function createCORSRequest(method, url) {
+      var xhr = new XMLHttpRequest();
+      if ("withCredentials" in xhr) {
+        // XHR for Chrome/Firefox/Opera/Safari.
+        xhr.open(method, url, true);
+      } else if (typeof XDomainRequest != "undefined") {
+        // XDomainRequest for IE.
+        xhr = new XDomainRequest();
+        xhr.open(method, url);
+      } else {
+        // CORS not supported.
+        xhr = null;
+      }
+      return xhr;
+    }
+    </script>
+  </body>
+</html>

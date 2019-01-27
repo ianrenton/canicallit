@@ -5,38 +5,8 @@ body {
   font-family: "Helvetica Neue", "Helvetica", "Lucida Grande", "Lucida Sans", "Verdana", "Arial", sans-serif;
 }
 
-#index h1 {
-  margin-top:6em;
-  text-align: center;
-  color: #66c;
-  font-size: 2em;
-  font-weight: 300;
-}
-
-#index form {
-  margin: 0 auto;
-  text-align: center;
-}
-
-#index form input {
-  color: #66c;
-  font-size: 1em;
-  font-weight: 300;
-}
-
-#description {
-  margin-top: 8em;
-}
-
-#description p {
-  text-align: center;
-  color: #777;
-  font-size: 0.8em;
-}
-
 #header {
-  background-color: #ddd;
-  padding:0.3em;
+  margin-top:12em;
 }
 
 #header h1 {
@@ -57,8 +27,19 @@ body {
   font-weight: 300;
 }
 
+#description {
+  margin-top: 8em;
+}
+
+#description p {
+  text-align: center;
+  color: #777;
+  font-size: 0.8em;
+}
+
 #result {
   padding: 1em;
+  display: none;
 }
 
 #result h1 {
@@ -87,6 +68,9 @@ body {
 }
 
 #footer {
+  position: fixed; 
+  bottom:0%;
+  width:100%;
   margin-top: 3em;
   background-color: #ddd;
   padding:0.5em;
@@ -100,7 +84,9 @@ body {
 
 #metadata {
   margin-top: 3em;
+  margin-bottom: 8em;
   padding:0.5em;
+  display: none;
 }
 
 #metadata p {
